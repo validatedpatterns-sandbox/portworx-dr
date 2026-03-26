@@ -19,7 +19,7 @@ clusterGroup:
       chartVersion: 0.2.*
     portworx:
       name: portworx
-      namespace: portworx-dr
+      namespace: portworx
       path: charts/portworx
       extraValueFiles:
         - /overrides/portworx.yaml
