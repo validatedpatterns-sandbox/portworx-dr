@@ -150,10 +150,10 @@ data:
             echo "Port UDP 2049 already allowed in security group $AWS_SG for $AWS_INSTANCE."
           fi
 
-        else
-          echo "Could not find security group created by OpenShift installer, exiting."
-          exit 1
-        fi
+        # else
+        #   echo "Could not find security group created by OpenShift installer, exiting."
+        #   exit 1
+        # fi
       echo ""
       done
 
