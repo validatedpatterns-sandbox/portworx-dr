@@ -91,7 +91,7 @@ data:
           echo "Found OpenShift created security group assigned to $AWS_INSTANCE, opening Portworx ports."
 
           # Check to see if security group already allows TCP 17001-17022
-          RULE_EXISTS_SG=$(aws ec2 describe-security-groups --region $AWS_REGION --filters Name=ip-permission.from-port,Values=17001 Name=ip-permission.to-port,Values=17022 Name=ip-permission.group-id,Values=$AWS_SG  --output text)
+          RULE_EXISTS_SG=$(aws ec2 describe-security-groups --region $AWS_REGION --filters "Name=ip-permission.from-port,Values=17001 Name=ip-permission.to-port,Values=17022 Name=ip-permission.group-id,Values=$AWS_SG"  --output text)
           if [ -z "$RULE_EXISTS_SG" ]
           then
             unset RULE_EXISTS_SG
@@ -103,7 +103,7 @@ data:
           fi
 
            # Check to see if security group already allows TCP 20048
-          RULE_EXISTS_SG=$(aws ec2 describe-security-groups --region $AWS_REGION --filters Name=ip-permission.from-port,Values=20048 Name=ip-permission.to-port,Values=20048 Name=ip-permission.group-id,Values=$AWS_SG  --output text)
+          RULE_EXISTS_SG=$(aws ec2 describe-security-groups --region $AWS_REGION --filters "Name=ip-permission.from-port,Values=20048 Name=ip-permission.to-port,Values=20048 Name=ip-permission.group-id,Values=$AWS_SG"  --output text)
           if [ -z "$RULE_EXISTS_SG" ]
           then
             unset RULE_EXISTS_SG
@@ -115,7 +115,7 @@ data:
           fi
 
            # Check to see if security group already allows TCP 111
-          RULE_EXISTS_SG=$(aws ec2 describe-security-groups --region $AWS_REGION --filters Name=ip-permission.from-port,Values=111 Name=ip-permission.to-port,Values=111 Name=ip-permission.group-id,Values=$AWS_SG  --output text)
+          RULE_EXISTS_SG=$(aws ec2 describe-security-groups --region $AWS_REGION --filters "Name=ip-permission.from-port,Values=111 Name=ip-permission.to-port,Values=111 Name=ip-permission.group-id,Values=$AWS_SG"  --output text)
           if [ -z "$RULE_EXISTS_SG" ]
           then
             unset RULE_EXISTS_SG
@@ -127,7 +127,7 @@ data:
           fi
 
            # Check to see if security group already allows UDP 17002
-          RULE_EXISTS_SG=$(aws ec2 describe-security-groups --region $AWS_REGION --filters Name=ip-permission.from-port,Values=17002 Name=ip-permission.to-port,Values=111 Name=ip-permission.group-id,Values=$AWS_SG  --output text)
+          RULE_EXISTS_SG=$(aws ec2 describe-security-groups --region $AWS_REGION --filters "Name=ip-permission.from-port,Values=17002 Name=ip-permission.to-port,Values=111 Name=ip-permission.group-id,Values=$AWS_SG"  --output text)
           if [ -z "$RULE_EXISTS_SG" ]
           then
             unset RULE_EXISTS_SG
@@ -139,7 +139,7 @@ data:
           fi
 
            # Check to see if security group already allows TCP 2049
-          RULE_EXISTS_SG=$(aws ec2 describe-security-groups --region $AWS_REGION --filters Name=ip-permission.from-port,Values=2049 Name=ip-permission.to-port,Values=2049 Name=ip-permission.group-id,Values=$AWS_SG  --output text)
+          RULE_EXISTS_SG=$(aws ec2 describe-security-groups --region $AWS_REGION --filters "Name=ip-permission.from-port,Values=2049 Name=ip-permission.to-port,Values=2049 Name=ip-permission.group-id,Values=$AWS_SG"  --output text)
           if [ -z "$RULE_EXISTS_SG" ]
           then
             unset RULE_EXISTS_SG
