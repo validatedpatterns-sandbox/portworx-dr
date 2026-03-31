@@ -85,7 +85,7 @@ data:
       AWS_REGION=$(oc get $NODE -o jsonpath='{.metadata.labels.topology\.kubernetes\.io/region}')
       AWS_SG=$(aws ec2 describe-instances --instance-id $AWS_INSTANCE --region=$AWS_REGION --query "Reservations[].Instances[].SecurityGroups[].GroupId[]" --output text)
       for GROUP in $AWS_SG; do
-        OCP_SG=$(aws ec2 describe-security-groups --group-ids $GROUP --query "SecurityGroups[*].Description" | grep -w "node" | wc -l)
+        # OCP_SG=$(aws ec2 describe-security-groups --group-ids $GROUP --query "SecurityGroups[*].Description" | grep -w "node" | wc -l)
         if [ $OCP_SG -eq 1 ];
         then
           echo "Found OpenShift created security group assigned to $AWS_INSTANCE, opening Portworx ports."
