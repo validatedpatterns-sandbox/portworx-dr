@@ -39,6 +39,10 @@ clusterGroup:
       path: charts/portworx
       extraValueFiles:
         - /overrides/portworx.yaml
+    machine-config:
+      name: machine-config
+      namespace: portworx
+      path: charts/machine-config
 
   managedClusterGroups:
     secondary-region:

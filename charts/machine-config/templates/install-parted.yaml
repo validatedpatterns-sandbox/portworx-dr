@@ -1,0 +1,35 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: worker
+  name: 99-worker-install-parted
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    systemd:
+      units:
+      - name: install-parted.service
+        enabled: true
+        contents: |
+          [Unit]
+          Description=Extract parted binary from CentOS Stream RPM
+          Wants=network-online.target
+          After=network-online.target
+          ConditionPathExists=!/usr/sbin/parted
+
+          [Service]
+          Type=oneshot
+          RemainAfterExit=yes
+          ExecStartPre=/usr/bin/mkdir -p /tmp/parted-install
+          ExecStart=/usr/bin/bash -c ' \
+            cd /tmp/parted-install && \
+            curl -L -o parted.rpm https://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/parted-3.5-3.el9.x86_64.rpm && \
+            rpm2cpio parted.rpm | cpio -idmv && \
+            cp usr/sbin/parted /usr/sbin/parted && \
+            chmod 755 /usr/sbin/parted'
+          ExecStartPost=/usr/bin/rm -rf /tmp/parted-install
+
+          [Install]
+          WantedBy=multi-user.target
