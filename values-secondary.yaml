@@ -17,6 +17,10 @@ clusterGroup:
       namespace: golang-external-secrets
       chart: golang-external-secrets
       chartVersion: 0.2.*
+    machine-config:
+      name: machine-config
+      namespace: portworx
+      path: charts/machine-config
     portworx:
       name: portworx
       namespace: portworx
