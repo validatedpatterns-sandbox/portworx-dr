@@ -4,19 +4,28 @@ clusterGroup:
   namespaces:
     - golang-external-secrets
     - portworx
+    - external-secrets-operator:
+      operatorGroup: true
+      targetNamespaces: []
+    - external-secrets
 
   subscriptions:
     portworx:
       name: portworx-certified
       namespace: portworx
       source: certified-operators
+    eso:
+      name: openshift-external-secrets-operator
+      namespace: external-secrets-operator
+      channel: stable-v1
 
   applications:
-    golang-external-secrets:
-      name: golang-external-secrets
-      namespace: golang-external-secrets
-      chart: golang-external-secrets
-      chartVersion: 0.2.*
+    openshift-external-secrets:
+      name: openshift-external-secrets
+      namespace: external-secrets
+      argoProject: hub
+      chart: openshift-external-secrets
+      chartVersion: 0.0.*
     machine-config:
       name: machine-config
       namespace: portworx
