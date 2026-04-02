@@ -7,8 +7,8 @@ clusterGroup:
     - portworx
     - boutique
     - external-secrets-operator:
-      operatorGroup: true
-      targetNamespaces: []
+        operatorGroup: true
+        targetNamespaces: []
     - external-secrets
 
   subscriptions:

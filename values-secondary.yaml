@@ -5,8 +5,8 @@ clusterGroup:
     - golang-external-secrets
     - portworx
     - external-secrets-operator:
-      operatorGroup: true
-      targetNamespaces: []
+        operatorGroup: true
+        targetNamespaces: []
     - external-secrets
 
   subscriptions:
