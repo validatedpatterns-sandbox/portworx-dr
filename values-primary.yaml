@@ -72,9 +72,8 @@ clusterGroup:
     aap-config:
       name: aap-config
       namespace: aap-config
-      repoURL: https://github.com/dminnear-rh/aap-config-chart.git
-      chartVersion: update-eso
-      path: .
+      chart: aap-config
+      chartVersion: 0.2.*
       extraValueFiles:
         - /overrides/values-aap-config.yaml
 
