@@ -110,6 +110,7 @@ spec:
     enabled: true
     args:
       webhook-controller: "true"
+      admin-namespace: {{ $namespace }}
     image: {{ include "px.getStorkImage" . }}
   autopilot:
     enabled: true
