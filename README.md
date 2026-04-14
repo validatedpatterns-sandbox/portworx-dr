@@ -53,7 +53,9 @@ Then, all you need to do is install the pattern itself with the command below:
 ```
 
 The pattern will automatically add your secondary cluster via ACM and set up the async Portworx cluster pairing
-for the boutique namespace. A migration schedule will also be started with an interval of 5 minutes. This whole process can take 30 minutes or more.
+for the boutique namespace. A migration schedule will also be started with an interval of 5 minutes. This whole process will take up
+to an hour. The clusters are fully set up when the Argo apps on primary and secondary clusters are healthy and synced and
+the jobs in AAP all succeed.
 
 ## Related Repos
 
