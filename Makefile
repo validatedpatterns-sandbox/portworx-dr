@@ -7,6 +7,3 @@ include Makefile-common
 .PHONY: configure-aws
 configure-aws: ## Configures the hosted cluster to be able to run Portworx
 	@$(ANSIBLE_RUN) ansible/playbooks/configure-aws-portworx.yml
-
-.PHONY: install
-install: configure-aws pattern-install
