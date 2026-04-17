@@ -12,6 +12,7 @@ clusterGroup:
     - external-secrets
     - ansible-automation-platform
     - aap-config
+    - minio
 
   subscriptions:
     acm:
@@ -72,6 +73,10 @@ clusterGroup:
       chartVersion: 0.0.*
       extraValueFiles:
         - /overrides/boutique.yaml
+    minio:
+      name: minio
+      namespace: minio
+      path: charts/minio
 
   managedClusterGroups:
     secondary-region:
