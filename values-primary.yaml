@@ -13,6 +13,7 @@ clusterGroup:
     - ansible-automation-platform
     - aap-config
     - minio
+    - my-namespace
 
   subscriptions:
     acm:

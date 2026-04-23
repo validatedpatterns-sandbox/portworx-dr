@@ -27,16 +27,14 @@
     aws_access_key: "{{ aws_access_key_id }}"
     aws_secret_key: "{{ aws_secret_access_key }}"
     region: "{{ aws_region }}"
-    filters:
-      "tag:cluster_id": "{{ cluster_id }}"
-      instance-state-name: running
+    filters: "{{ {'tag:kubernetes.io/cluster/' + cluster_id: 'owned', 'instance-state-name': 'running'} }}"
   register: worker_instances
 
 - name: Assert worker instances were found
   ansible.builtin.assert:
     that:
       - worker_instances.instances | length > 0
-    fail_msg: "No running EC2 instances found with tag cluster_id={{ cluster_id }} in region {{ aws_region }}"
+    fail_msg: "No running EC2 instances found with tag kubernetes.io/cluster/{{ cluster_id }}=owned in region {{ aws_region }}"
 
 - name: Select a worker instance
   ansible.builtin.set_fact:
