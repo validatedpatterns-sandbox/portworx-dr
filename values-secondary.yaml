@@ -2,7 +2,6 @@ clusterGroup:
   name: secondary
 
   namespaces:
-    - golang-external-secrets
     - portworx
     - external-secrets-operator:
         operatorGroup: true
