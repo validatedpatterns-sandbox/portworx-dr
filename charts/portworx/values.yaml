@@ -2,9 +2,6 @@ global:
   clusterPlatform: AWS
   clusterDomain: cluster-name.example.com
 
-cloudProvider:
-  storageClass: default-rwo
-
 namespace: portworx              # Recommended namespace for install is 'portworx', change to desired namespace if default is unacceptable
 pxnamespace: portworx              # Recommended namespace for install is 'portworx', change to desired namespace if default is unacceptable
 
@@ -28,7 +25,6 @@ network:
   managementInterface: none         # Name of the interface <ethX>
 
 secretType: k8s                     # Defaults to k8s, but can be aws-kms/k8s/none
-envVars: none                       # NOTE: This is a ";" seperated list of environment variables. For eg: MYENV1=myvalue1;MYENV2=myvalue2
 
 csi: true                          # Enable CSI
 
@@ -39,17 +35,10 @@ registrySecret:
 
 serviceAccount:
 
-repo:
-  enterprise: docker.io/portworx
-  dr: docker.io/portworx
-
 deleteStrategy: UninstallAndWipe    # Options are Uninstall and UninstallAndWipe
 
 # You can determine the correct versions at the following URL: https://install.portworx.com/$PXVER/version?kbver=$KBVER
 versions:
-  enterprise: "3.6.0" # This will be the "version" string
   ociMon: "3.6.0" # This will be the "version" string
-  autoPilot: "1.4.0" # This will be the "portworx/autopilot" version string
-  stork: "26.2.0" # This will be the "openstorage/stork" version string
 
 installParted: true # Standard RHCOS ISOs are missing the parted utility, required by Portworx. Setting this to true creates a machine config to add parted to the nodes

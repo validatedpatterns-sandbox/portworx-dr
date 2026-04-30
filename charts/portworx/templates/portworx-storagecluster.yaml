@@ -56,10 +56,6 @@ spec:
     - name: PX_SERVICE_ACCOUNT
       value: {{ $serviceAccount }}
     {{- end }}
-    - name: PX_IMAGE
-      value: {{ include "px.getImage" .}}
-    - name: PX_NAMESPACE
-      value: {{ $namespace }}
   image: {{ include "px.getOCIImage" .}}
   imagePullPolicy: Always
   {{- if not (eq $registrySecret "none") }}
@@ -89,9 +85,6 @@ spec:
     {{- if $internalKVDB}}
     kvdbDeviceSpec: {{ $kvdbDrives }}
     {{- end }}
-    {{- if ne $maxStorageNodesPerZone 0 }}
-    # maxStorageNodesPerZone: {{ $maxStorageNodesPerZone }}
-    {{- end }}
   {{- end }}
   {{- if ne .Values.secretType "k8s" }}
   secretsProvider: {{ .Values.secretType }}
@@ -105,16 +98,13 @@ spec:
     mgmtInterface: {{ .Values.network.managementInterface }}
     {{- end }}
   {{- end }}
-  secretsProvider: k8s
   stork:
     enabled: true
     args:
       webhook-controller: "true"
       admin-namespace: {{ $namespace }}
-    image: {{ include "px.getStorkImage" . }}
   autopilot:
     enabled: true
-    image: {{ include "px.getAutopilotImage" . }}
   csi:
     enabled: {{ .Values.csi  | default "true" }}
   monitoring:
