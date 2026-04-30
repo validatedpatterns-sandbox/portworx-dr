@@ -60,3 +60,6 @@ versions:
   ociMon: "3.6.0" # This will be the "version" string
 
 installParted: true # Standard RHCOS ISOs are missing the parted utility, required by Portworx. Setting this to true creates a machine config to add parted to the nodes
+
+machineConfig:
+  name: 99-pure-storage-configuration
