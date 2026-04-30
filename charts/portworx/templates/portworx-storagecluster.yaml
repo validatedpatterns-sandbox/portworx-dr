@@ -1,7 +1,19 @@
-{{- $usefileSystemDrive := .Values.storage.usefileSystemDrive | default false }}
-{{- $drives := .Values.storage.drives | default "none" }}
-{{- $usedrivesAndPartitions := .Values.storage.usedrivesAndPartitions | default false }}
-{{- $maxStorageNodesPerZone := int64 .Values.storage.maxStorageNodesPerZone | int64 }}
+{{- $clusterPlatform := $.Values.global.clusterPlatform }}
+{{- $usePureFlashArray := .Values.usePureFlashArray | default false }}
+{{- $usePureStorage := (or $usePureFlashArray .Values.usePureFlashBlade) | default false }}
+{{- $usePureStorage := (or .Values.usePureFlashArray .Values.usePureFlashBlade) | default false }}
+{{/*
+  storagePlatform will follow clusterPlatform unless one (or both) of Pure FlashArray
+  or Pure FlashBlade are configured for use, those are treated as a "cloud platform"
+  in Portworx and not a standard DAS/SAN bare metal configuration.
+*/}}
+{{- $storagePlatform := ternary "pure" ($.Values.global.clusterPlatform | lower) $usePureStorage }}
+{{- $storageDefaults := mustMergeOverwrite dict .Values.storageDefaults.common (get .Values.storageDefaults $storagePlatform) }}
+{{- $storage := mustMergeOverwrite $storageDefaults .Values.storage }}
+{{- $usefileSystemDrive := $storage.usefileSystemDrive | default false }}
+{{- $devices := compact (ternary $storage.devices (list $storage.devices) (eq (kindOf $storage.devices) "slice")) }}
+{{- $usedrivesAndPartitions := $storage.usedrivesAndPartitions | default false }}
+{{- $initialStorageNodes := int64 $storage.initialStorageNodes | default 0 }}
 {{- $dataInterface := .Values.dataInterface | default "none" }}
 {{- $managementInterface := .Values.managementInterface | default "none" }}
 {{- $registrySecret := .Values.registrySecret | default "none" }}
@@ -9,8 +21,22 @@
 {{- $serviceAccount := .Values.serviceAccount | default "none" }}
 {{- $customRegistryURL := .Values.customRegistryURL | default "none" }}
 {{- $deleteStrategy := .Values.deleteStrategy | default "none" }}
+{{- $deleteStrategyIgnoreVolumes := .Values.deleteStrategyIgnoreVolumes | default false }}
 {{- $internalKVDB := .Values.internalKVDB | default true }}
-{{- $kvdbDrives := .Values.storage.kvdbDrives | default "none" }}
+{{- $kvdbDevice := $storage.kvdbDevice | default "none" }}
+{{- $journalDevice := $storage.journalDevice | default "auto" }}
+{{- $runOnControlPlane := .Values.runOnControlPlane | default false }}
+{{- $systemMetadataDevice := $storage.systemMetadataDevice | default "none" }}
+{{- $runtimeOptions := .Values.runtimeOptions | default (dict "default-io-profile" "6") }}
+{{- $cloudStorageProvider := $storage.cloudProvider | default $storagePlatform }}
+{{- $preflightCheck := .Values.preflightCheck | default true }}
+{{- $pureFlashArrayType := .Values.pureFlashArray.type | default "ISCSI" | upper }}
+{{- if not (or (eq $storagePlatform "baremetal") $devices) }}
+{{- fail "Device spec must be supplied in 'devices' when using cloud storage" }}
+{{- end }}
+{{- if and $storage.enablePxStoreV2 (eq $systemMetadataDevice "none") }}
+{{- fail "systemMetadataDevice must be supplied when using PxStore-V2" }}
+{{- end }}
 
 apiVersion: core.libopenstorage.org/v1
 kind: StorageCluster
@@ -29,10 +55,18 @@ metadata:
     portworx.com/install-source: helm-rhmcgo
     portworx.com/helm-vars: 'chart="{{.Chart.Name}}-{{.Chart.Version}}"{{range $k, $v := .Values }}{{if and ($v) (ne "clusterGroup" $k) }},{{ $k }}="{{ $v }}" {{end}}{{end}}'
     portworx.io/service-type: "LoadBalancer"
+    {{- if $storage.enablePxStoreV2 }}
+    portworx.io/misc-args: " -T px-storev2 "
+    portworx.io/preflight-check: {{ $preflightCheck | quote }}
+    {{- end }}
+    {{- if $runOnControlPlane }}
+    portworx.io/run-on-master: "true"
+    {{- end }}
 spec:
   {{- if not (eq $deleteStrategy "none") }}
   deleteStrategy:
     type: {{ $deleteStrategy }}
+    ignoreVolumes: {{ $deleteStrategyIgnoreVolumes }}
   {{- end }}
   env:
     {{- if eq $.Values.global.clusterPlatform "Azure" }}
@@ -56,6 +90,16 @@ spec:
     - name: PX_SERVICE_ACCOUNT
       value: {{ $serviceAccount }}
     {{- end }}
+    {{- if eq $storagePlatform "pure" }}
+    {{- if $usePureFlashArray }}
+    - name: PURE_FLASHARRAY_SAN_TYPE
+      value: {{ $pureFlashArrayType | quote }}
+    {{- if and (eq $pureFlashArrayType "ISCSI") .Values.pureFlashArray.allowedCIDRs }}
+    - name: PURE_ISCSI_ALLOWED_CIDRS
+      value: {{ join "," .Values.pureFlashArray.allowedCIDRs | quote }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
   image: {{ include "px.getOCIImage" .}}
   imagePullPolicy: Always
   {{- if not (eq $registrySecret "none") }}
@@ -66,24 +110,41 @@ spec:
   {{- end }}
   kvdb:
     internal: true
-  {{- if eq $drives "none" }}
+  {{- if eq $storagePlatform "baremetal" }}
   storage:
     useAllWithPartitions: {{ $usedrivesAndPartitions }}
     forceUseDisks: {{ $usefileSystemDrive }}
-    journalDevice: auto
-    {{- if $internalKVDB }}
-    kvdbDevice: {{ $kvdbDrives }}
+    {{- if $devices }}
+    devices:
+    {{- range $index, $device := $devices }}
+    - {{ $device }}
+    {{- end }}
+    {{- end }}
+    journalDevice: {{ $journalDevice }}
+    {{- if and $internalKVDB (ne $kvdbDevice "none") }}
+    kvdbDevice: {{ $kvdbDevice }}
+    {{- end }}
+    {{- if (ne $systemMetadataDevice "none") }}
+    systemMetadataDevice: {{ $systemMetadataDevice | quote }}
     {{- end }}
   {{- else }}
   cloudStorage:
     deviceSpecs:
-    {{- $driveNames := $drives | split ";" }}
-    {{- range $index, $name := $driveNames }}
-    - {{ $name }}
+    {{- range $index, $device := $devices }}
+    - {{ $device | quote }}
     {{- end }}
-    journalDeviceSpec: auto
-    {{- if $internalKVDB}}
-    kvdbDeviceSpec: {{ $kvdbDrives }}
+    journalDeviceSpec: {{ $journalDevice | quote }}
+    {{- if and $internalKVDB (ne $kvdbDevice "none") }}
+    kvdbDeviceSpec: {{ $kvdbDevice | quote }}
+    {{- end }}
+    {{- if (ne $systemMetadataDevice "none") }}
+    systemMetadataDeviceSpec: {{ $systemMetadataDevice | quote }}
+    {{- end }}
+    {{- if (ne $cloudStorageProvider "none") }}
+    provider: {{ $cloudStorageProvider | quote }}
+    {{- end }}
+    {{- if ge $initialStorageNodes 3 }}
+    initialStorageNodes: {{ $initialStorageNodes }}
     {{- end }}
   {{- end }}
   {{- if ne .Values.secretType "k8s" }}
@@ -103,6 +164,12 @@ spec:
     args:
       webhook-controller: "true"
       admin-namespace: {{ $namespace }}
+  {{- if $runtimeOptions }}
+  runtimeOptions:
+    {{- range $option, $value := $runtimeOptions }}
+    {{ $option }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
   autopilot:
     enabled: true
   csi:

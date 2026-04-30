@@ -10,15 +10,33 @@ secrets:
   AWSsecretName: aws-creds
   AWSsecretNamespace: kube-system
 
-storage:
-  usefileSystemDrive: false         # true/false Instructs PX to use an unmounted Drive even if it has a filesystem.
-  usedrivesAndPartitions: false     # Defaults to false. Change to true and PX will use unmounted drives and partitions.
-  drives: "type=gp3,size=20"        # NOTE: This is a ";" seperated list of drives. For eg: "/dev/sda;/dev/sdb;/dev/sdc"
-                                    # Defaults to use -A switch.
-                                    # To have drives automatically created specify the drive spec. For Eg: "type=gp2,size=150" or "type=io1,size=100,iops=2000"
-  journalDevice:
-  maxStorageNodesPerZone: "1"	    # WARNING: If you are running in a cloud region with two or less Availability Zones, you must set this to 2 (2 AZs) or 3 (1 AZ) for a minimum configuration (3-node cluster). This is NOT a recommended configuration as it could lead to data loss - Portworx recommends that storage nodes are split evenly across AZs for maximum storage resiliency.
-  kvdbDrives: "type=gp3,size=150"
+# Just enough to allow an install with default values. 'common' contains overall defaults
+# and then storage defaults per storage platform. The storage platform is the cluster
+storageDefaults:
+  common:
+    enablePxStoreV2: true
+  baremetal:
+    enablePxStoreV2: false
+    usefileSystemDrive: false
+    usedrivesAndPartitions: false
+  pure:
+    devices: "size=100"
+    kvdbDevice: "none"
+    systemMetadataDevice: "size=64"
+  aws:
+    devices: "type=gp3,size=20"
+    kvdbDevice: "type=gp3,size=150"
+    systemMetadataDevice: "type=gp3,size=64"
+
+storage: {}
+
+runOnControlPlane: false
+
+usePureFlashArray: false
+usePureFlashBlade: false
+
+pureFlashArray:
+  type: iSCSI
 
 network:
   dataInterface: none               # Name of the interface <ethX>
@@ -35,7 +53,7 @@ registrySecret:
 
 serviceAccount:
 
-deleteStrategy: UninstallAndWipe    # Options are Uninstall and UninstallAndWipe
+deleteStrategy: UninstallAndWipe    # Options are Uninstall, UninstallAndWipe, and UninstallAndDelete
 
 # You can determine the correct versions at the following URL: https://install.portworx.com/$PXVER/version?kbver=$KBVER
 versions:
