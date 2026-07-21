@@ -1,6 +1,7 @@
+---
 agof:
-  iac_repo: https://github.com/validatedpatterns-demos/portworx-dr-iac.git
-  iac_revision: main
+  cac_repo: https://github.com/validatedpatterns-demos/portworx-dr-iac.git
+  cac_revision: main
 
 configJob:
   image: quay.io/validatedpatterns/utility-container:latest
