@@ -1,0 +1,42 @@
+{{- $machineConfigName := .Values.machineConfig.name }}
+{{- if and .Values.usePureFlashArray (eq $.Values.global.clusterPlatform "BareMetal") (ne $machineConfigName "none") }}
+{{- $type := .Values.pureFlashArray.type | upper }}
+{{- $runOnControlPlane := .Values.runOnControlPlane | default false }}
+{{- $roles := .Values.machineConfig.roles | default (list "worker") }}
+{{- $roles := $runOnControlPlane | ternary (append $roles "master") $roles }}
+{{- range $index, $role := $roles }}
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  name: {{ printf "%s-%s" $machineConfigName $role }}
+  labels:
+    machineconfiguration.openshift.io/role: {{ $role }}
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+      - contents:
+          source: data:text/plain;charset=utf-8;base64,{{ $.Files.Get "files/multipath.conf" | b64enc }}
+        filesystem: root
+        mode: 0644
+        overwrite: true
+        path: /etc/multipath.conf
+      - contents:
+          source: data:text/plain;charset=utf-8;base64,{{ $.Files.Get "files/99-pure-storage.rules" | b64enc }}
+        filesystem: root
+        mode: 0644
+        overwrite: true
+        path: /etc/udev/rules.d/99-pure-storage.rules
+    systemd:
+      units:
+      {{- if eq $type "ISCSI" }}
+      - enabled: true
+        name: iscsid.service
+      {{- end }}
+      - enabled: true
+        name: multipathd.service
+{{- end }}
+{{- end -}}
